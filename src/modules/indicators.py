@@ -34,3 +34,29 @@ def total_foodgrain_per_capita(
     )
 
     return result
+
+def pulses_per_capita(
+    df_tidy: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Compute per-capita monthly pulses consumption.
+
+    Returns
+    -------
+    DataFrame with columns:
+    state | sector | pulses_per_capita
+    """
+
+    df_pulses = df_tidy[df_tidy["food_item"] == "Pulses"]
+
+    result = (
+        df_pulses
+        .groupby(["state", "sector"], as_index=False)
+        ["per_capita_monthly_consumption"]
+        .sum()
+        .rename(columns={
+            "per_capita_monthly_consumption": "pulses_per_capita"
+        })
+    )
+
+    return result
