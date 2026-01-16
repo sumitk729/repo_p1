@@ -6,4 +6,4 @@ psycopg2-binary
 python-dotenv
 matplotlib
 pyarrow>=14.0.0
-openpyxl
+openpyxl>=3.1.0
