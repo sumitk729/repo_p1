@@ -60,3 +60,24 @@ def pulses_per_capita(
     )
 
     return result
+
+def combined_foodgrain_pulses_table(
+    df_foodgrain: pd.DataFrame,
+    df_pulses: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Combine foodgrain and pulses indicators into a single table.
+
+    Returns
+    -------
+    DataFrame with columns:
+    state | sector | total_foodgrain_per_capita | pulses_per_capita
+    """
+
+    combined = df_foodgrain.merge(
+        df_pulses,
+        on=["state", "sector"],
+        how="left",
+    )
+
+    return combined
