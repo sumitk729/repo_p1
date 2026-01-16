@@ -10,3 +10,5 @@ Why does Codespaces use .devcontainer/?
 
 No tutorials.
 Just your own words, one paragraph at a time.
+
+## Installed pyarrow via pip temporarily; container rebuild pending.

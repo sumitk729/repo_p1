@@ -81,3 +81,36 @@ def combined_foodgrain_pulses_table(
     )
 
     return combined
+
+def rank_states(
+    df: pd.DataFrame,
+    value_col: str,
+    sector: str,
+    ascending: bool = False,
+) -> pd.DataFrame:
+    """
+    Rank states by a given indicator within a sector.
+
+    Parameters
+    ----------
+    df : DataFrame
+        Combined indicator table
+    value_col : str
+        Column to rank by
+    sector : str
+        'Rural' or 'Urban'
+    ascending : bool
+        False = highest first
+
+    Returns
+    -------
+    Ranked DataFrame
+    """
+
+    ranked = (
+        df[df["sector"] == sector]
+        .sort_values(value_col, ascending=ascending)
+        .assign(rank=lambda x: range(1, len(x) + 1))
+    )
+
+    return ranked[["rank", "state", "sector", value_col]]
