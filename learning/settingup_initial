@@ -1,0 +1,443 @@
+# PHASE 0 — Sanity Check (2 minutes, don’t assume)
+**0.1 Verify prerequisites (local machine)**
+
+Confirm these are installed:
+
+* Docker Desktop → running (🐳 icon visible)
+
+* VS Code
+
+* VS Code extensions:
+
+    * ✅ Dev Containers (by Microsoft)
+
+    * ✅ Python (by Microsoft)
+
+If Docker is not running → STOP. Nothing below works without it.
+
+# PHASE O: Update files with code
+
+Initialise the container only after the files like requirements.txt, requirements-dev.txt, devcontainer.json, Dokcerfile are edited.
+
+### requirements.txt
+
+Include all the packages which are going to be used in requirements.txt file.
+
+```txt
+jupyter
+pandas
+numpy
+sqlalchemy
+psycopg2-binary
+python-dotenv
+matplotlib
+pyarrow>=14.0.0
+openpyxl>=3.1.0
+```
+
+### requirements-dev.txt
+```
+pytest
+```
+
+### devcontianer files
+
+#### devcontainer.json
+
+```json
+{
+  "name": "Python Dev Container",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "postCreateCommand": "pip install -r requirements.txt -r requirements-dev.txt",
+  "remoteUser": "root"
+}
+```
+#### Dockerfile
+
+```Dockerfile
+FROM python:3.11-slim
+
+# Installing System dependencies
+RUN apt-get update && \
+    apt-get install -y git make && \
+    rm -rf /var/lib/apt/lists/*
+
+# upgrade pip permanently
+RUN python -m pip install --upgrade pip
+
+
+
+WORKDIR /workspace
+
+
+# Installing python dependencies
+COPY requirements.txt requirements-dev.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
+
+# Copy project
+COPY . .
+```
+
+### src folder
+* create folder name modules
+    * inside modules create files ```__init__.py```, ```hello.py```
+    * inside ```hello.py``` put following code
+
+    ```python
+    def say_hello(name: str) -> str:
+    if not name:
+        raise ValueError("name cannot be empty")
+    return f"Hello, {name}!"
+    ```
+
+    * leave ```__init__.py``` empty
+* create a file named ```__init__.py``` and leave it empty
+* create a file named ```main.py``` and put following code
+
+
+```python
+def main():
+    print("Environment is working correctly yehhh!!")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+#### tests folder
+
+* create files ```test_sanity.py```, ```test_hello.py```, ```test_utils.py``` and leave test_utils file empty
+* put following code in test_hello file
+```python
+import pytest
+from src.modules.hello import say_hello
+
+
+def test_say_hello_valid():
+    assert say_hello("Alice") == "Hello, Alice!"
+
+
+def test_say_hello_empty_name():
+    with pytest.raises(ValueError):
+        say_hello("")
+```
+
+* put following code in test_sanity file
+```python
+def test_sanity():
+    assert 1 + 1 == 2
+```
+
+#### Makefile
+* Create a makefile at the root level with following code
+
+```Makefile
+.PHONY: run test
+
+run:
+	python -m src.main
+
+test:
+	pytest
+
+```
+
+#### Other files and folders
+
+* create ```pyproject.toml``` file at root, leave it empty
+* create ```pytest.ini``` file at root and put following code in it
+
+```ini
+[pytest]
+pythonpath = .
+testpaths = tests
+```
+
+* README.md file at root level
+* infra-notes.md at root level
+* LEARNING_NOTES.md at root level
+* folders like 
+    * data with subfolders like
+        * raw
+        * output
+        * processed
+        * interim
+    * notebooks
+    * scripts
+    
+
+# PHASE 1 — Make the Dev Container REAL
+
+Right now you have files, not a working environment.
+
+**1.1 Open Command Palette**
+
+* Press:
+
+    * Ctrl + Shift + P (Windows/Linux)
+**1.2 Reopen in container**
+
+Type:
+
+```
+Dev Containers: Reopen in Container
+```
+
+👉 Click it.
+
+**What happens now**
+
+* VS Code:
+
+    * Builds Docker image using Dockerfile
+
+    * Reads .devcontainer/devcontainer.json
+
+    * Spins a container
+
+* First time = slow (normal)
+
+* Subsequent times = fast
+
+⚠️ If it fails:
+
+* Read the error
+
+* 90% failures = Docker not running or typo in Dockerfile
+
+**1.3 Confirm you are INSIDE container**
+
+Look bottom-left of VS Code:
+
+* You should see something like:
+
+```
+Dev Container: project-name
+
+```
+
+# PHASE 2 — Verify Python Environment (Critical)
+
+This ensures Codespaces & local are identical.
+
+**2.1 Open terminal (inside VS Code)**
+
+Menu:
+
+Terminal --> New Terminal
+
+2.2 Check Python
+
+Run:
+```
+python --version
+```
+
+Expected:
+```
+Python 3.11.x
+```
+
+If not → Dockerfile mismatch (fix before moving forward).
+
+**2.3 Check pip packages**
+
+Run:
+
+```
+pip list
+```
+
+Confirm:
+
+* Your required packages are present
+
+* No random junk packages
+
+# PHASE 3 — Minimal Code to Prove the System Works
+
+No ambition yet. Just validation.
+
+**3.1 Open src/main.py**
+
+Replace contents with:
+```
+
+def main():
+    print("Environment is working correctly 🚀")
+
+if __name__ == "__main__":
+    main()
+
+```
+**3.2 Run it**
+
+In terminal:
+
+```
+python src/main.py
+```
+
+Expected output:
+```
+Environment is working correctly 🚀
+```
+
+If this fails, stop everything and debug.
+Nothing else matters until this works.
+
+# PHASE 4 — Git Discipline Starts NOW
+
+If you delay this, you’ll regret it.
+
+**4.1 Initialize git (if not already)**
+
+In terminal:
+
+```git status```
+
+
+If you see:
+
+```fatal: not a git repository```
+
+
+Then:
+
+```git init```
+
+**4.2 Check .gitignore**
+
+Open .gitignore and ensure at least this exists:
+
+```
+__pycache__/
+.env
+data/raw/
+data/processed/
+.ipynb_checkpoints/
+```
+
+This prevents future self-sabotage.
+
+**4.3 First commit (clean baseline)**
+
+```
+git add .
+git commit -m "chore: initial project skeleton with devcontainer"
+```
+
+This commit is sacred. Never rewrite it.
+
+# PHASE 5 — Test Framework (Before Real Work)
+
+Yes, even now.
+
+**5.1 Create test file**
+
+Create:
+
+```tests/test_sanity.py```
+
+
+Add:
+
+```
+def test_sanity():
+    assert 1 + 1 == 2
+```
+
+**5.2 Run tests**
+```pytest```
+
+
+Expected:
+
+```1 passed```
+
+
+If tests don’t run, your project is not production-safe.
+
+# PHASE 6 — README (Thinking Before Coding)
+
+Open README.md and add only this for now:
+```
+# Project Name
+
+## Purpose
+Brief one-line description.
+
+## Setup
+This project uses Docker-based Dev Containers.
+Open in VS Code → Reopen in Container.
+
+## Run
+python src/main.py
+
+## Test
+pytest
+
+```
+
+Commit it:
+
+
+```
+git add README.md
+git commit -m "docs: add basic project usage"
+```
+
+# PHASE 7 — Codespaces Safety Check (Optional but Important)
+
+You’re local-first, but we verify safety.
+
+**7.1 Push to GitHub**
+```
+git branch -M main
+git remote add origin <your-repo-url>
+git push -u origin main
+```
+
+
+**7.2 On GitHub**
+
+* Open repo
+
+* Click Code → Create Codespace on main
+
+* Wait for build
+
+* Run:
+
+```
+python src/main.py
+pytest
+```
+
+If it works → you’ve won the environment war
+
+**🔥 What You Have Achieved (Most People Never Do)**
+
+You now have:
+
+* Local = Codespaces = identical
+
+* Reproducible environment
+
+* Git discipline from day 1
+
+* Testable foundation
+
+This is top 20% engineering hygiene already.
